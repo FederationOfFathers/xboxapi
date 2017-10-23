@@ -23,7 +23,10 @@ func New(c *Config) *Client {
 	}
 	var rval = &Client{
 		Client: &http.Client{
-			Transport: &rt{c},
+			Transport: &rt{
+				cfg:    c,
+				client: http.DefaultClient,
+			},
 		},
 	}
 	return rval
