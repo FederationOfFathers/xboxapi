@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/FederationOfFathers/xboxapi"
 	"github.com/spf13/cobra"
 )
 
@@ -21,22 +22,20 @@ var xboxonegamesCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		data, err := client().XboxOneGames(xuid)
-		if err != nil {
-			log.Fatal(err)
-		}
+		var out = []xboxapi.XboxOneTitle{}
+		var token *json.Number
 		for {
-			next, err := data.More()
-			if next != nil {
-				data.Titles = append(data.Titles, next.Titles...)
-			} else {
-				break
-			}
+			data, err := client().XboxOneGames(xuid, token)
 			if err != nil {
+				log.Fatal(err)
+			}
+			out = append(out, data.Titles...)
+			if data.PagingInfo.ContinuationToken == nil {
 				break
 			}
+			token = data.PagingInfo.ContinuationToken
 		}
-		buf, err := json.MarshalIndent(data.Titles, "", "\t")
+		buf, err := json.MarshalIndent(out, "", "\t")
 		if err != nil {
 			log.Fatal(err)
 		}
