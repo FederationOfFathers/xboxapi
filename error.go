@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+var ErrNotFound = fmt.Errorf("404 Not Found")
+
 type httpError struct {
 	StatusCode int
 	Status     string
@@ -23,8 +25,11 @@ func (h httpError) Error() string {
 }
 
 func rspError(rsp *http.Response) error {
-	if rsp.StatusCode == 200 {
+	switch rsp.StatusCode {
+	case 200:
 		return nil
+	case 404:
+		return ErrNotFound
 	}
 	return httpError{rsp.StatusCode, rsp.Status}
 }
