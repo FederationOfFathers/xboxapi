@@ -3,19 +3,18 @@ package xboxapi
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 type XboxOneTitle struct {
-	LastUnlock         time.Time `json:"lastUnlock"`
-	TitleID            int       `json:"titleId"`
-	ServiceConfigID    string    `json:"serviceConfigId"`
-	TitleType          string    `json:"titleType"`
-	Platform           string    `json:"platform"`
-	Name               string    `json:"name"`
-	EarnedAchievements int       `json:"earnedAchievements"`
-	CurrentGamerscore  int       `json:"currentGamerscore"`
-	MaxGamerscore      int       `json:"maxGamerscore"`
+	LastUnlock         APITime `json:"lastUnlock"`
+	TitleID            int     `json:"titleId"`
+	ServiceConfigID    string  `json:"serviceConfigId"`
+	TitleType          string  `json:"titleType"`
+	Platform           string  `json:"platform"`
+	Name               string  `json:"name"`
+	EarnedAchievements int     `json:"earnedAchievements"`
+	CurrentGamerscore  int     `json:"currentGamerscore"`
+	MaxGamerscore      int     `json:"maxGamerscore"`
 }
 
 // XboxOneGames is one page of games as returned by /v2/{xuid}/xboxonegames
@@ -51,16 +50,16 @@ func (c *Client) XboxOneGames(xuid int, continuationToken *json.Number) (*XboxOn
 }
 
 type Xbox360Title struct {
-	LastPlayed          time.Time `json:"lastPlayed"`
-	CurrentAchievements int       `json:"currentAchievements"`
-	CurrentGamerscore   int       `json:"currentGamerscore"`
-	Sequence            int       `json:"sequence"`
-	TitleID             int       `json:"titleId"`
-	TitleType           int       `json:"titleType"`
-	Platforms           []int     `json:"platforms"`
-	Name                string    `json:"name"`
-	TotalAchievements   int       `json:"totalAchievements"`
-	TotalGamerscore     int       `json:"totalGamerscore"`
+	LastPlayed          APITime `json:"lastPlayed"`
+	CurrentAchievements int     `json:"currentAchievements"`
+	CurrentGamerscore   int     `json:"currentGamerscore"`
+	Sequence            int     `json:"sequence"`
+	TitleID             int     `json:"titleId"`
+	TitleType           int     `json:"titleType"`
+	Platforms           []int   `json:"platforms"`
+	Name                string  `json:"name"`
+	TotalAchievements   int     `json:"totalAchievements"`
+	TotalGamerscore     int     `json:"totalGamerscore"`
 }
 
 type Xbox360Games struct {
@@ -69,7 +68,7 @@ type Xbox360Games struct {
 		ContinuationToken *json.Number `json:"continuationToken"`
 		TotalRecords      int          `json:"totalRecords"`
 	} `json:"pagingInfo"`
-	Version time.Time `json:"version"`
+	Version APITime `json:"version"`
 }
 
 func (c *Client) Xbox360Games(xuid int, continuationToken *json.Number) (*Xbox360Games, error) {

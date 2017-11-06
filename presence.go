@@ -3,7 +3,6 @@ package xboxapi
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 // Presence as returned by /v2/{xuid}/presence
@@ -11,10 +10,10 @@ type Presence struct {
 	XUID     int    `json:"xuid"`
 	State    string `json:"state"`
 	LastSeen struct {
-		DeviceType string    `json:"deviceType"`
-		TitleID    int       `json:"titleId"`
-		TitleName  string    `json:"titleName"`
-		TimeStamp  time.Time `json:"timestamp"`
+		DeviceType string  `json:"deviceType"`
+		TitleID    int     `json:"titleId"`
+		TitleName  string  `json:"titleName"`
+		TimeStamp  APITime `json:"timestamp"`
 	} `json:"lastSeen"`
 }
 

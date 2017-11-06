@@ -6,8 +6,8 @@ import (
 )
 
 type TitleDetails struct {
-	MediaGroup           string
-	MediaItemType        string
+	MediaGroup           interface{}
+	MediaItemType        interface{}
 	ID                   string
 	Name                 string
 	Description          string
@@ -56,7 +56,9 @@ type TitleDetails struct {
 		AvailabilityID      string
 		ContentID           string `json:"ContentId"`
 		LicensePolicyTicket string
-		OfferDisplayData    struct {
+		OfferDisplayData    interface{}
+		/* // Turns out this can be a string sometimes. See title 911120656
+		OfferDisplayData struct {
 			AcceptablePaymentInstrumentTypes []string `json:"acceptablePaymentInstrumentTypes"`
 			AvailabilityDescription          string   `json:"availabilityDescription"`
 			AvailabilityTitle                string   `json:"availabilityTitle"`
@@ -80,6 +82,7 @@ type TitleDetails struct {
 				Benefits []string
 			} `json:"SubscriptionBenefits"`
 		}
+		*/
 		Devices []struct {
 			Name string
 		}
@@ -112,8 +115,46 @@ type Title struct {
 	ImpressionGUID string         `json:"ImpressionGuid"`
 }
 
+func (t *Title) Devices() []string {
+	var rval = []string{}
+	for _, item := range t.Items {
+		for _, a := range item.Availabilities {
+			for _, d := range a.Devices {
+				var found bool
+				for _, n := range rval {
+					if n == d.Name {
+						found = true
+						break
+					}
+				}
+				if !found {
+					rval = append(rval, d.Name)
+				}
+			}
+		}
+	}
+	return rval
+}
+
 func (c *Client) GameDetails(guid string) (*Title, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/game-details/%s", guid))
+	if err != nil {
+		return nil, err
+	}
+	defer rsp.Body.Close()
+	if err := rspError(rsp); err != nil {
+		if isHTTPError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	var rval *Title
+	err = json.NewDecoder(rsp.Body).Decode(&rval)
+	return rval, err
+}
+
+func (c *Client) GameDetailsHex(hex string) (*Title, error) {
+	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/game-details-hex/%s", hex))
 	if err != nil {
 		return nil, err
 	}
