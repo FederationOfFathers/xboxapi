@@ -24,10 +24,10 @@ type Profile struct {
 // Profile fetches the account profile for a given XUID
 func (c *Client) Profile(xuid int) (*Profile, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/%d/profile", xuid))
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	var data *Profile
 	err = json.NewDecoder(rsp.Body).Decode(&data)
 	return data, err

@@ -25,10 +25,10 @@ type GamerCard struct {
 // GamerCard fetches the account GamerCard for a given XUID
 func (c *Client) GamerCard(xuid int) (*GamerCard, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/%d/gamercard", xuid))
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	var data *GamerCard
 	err = json.NewDecoder(rsp.Body).Decode(&data)
 	return data, err

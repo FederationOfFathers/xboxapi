@@ -92,6 +92,7 @@ func (c *Client) Activity(xuid int, continuationToken *json.Number) (*Activity, 
 		url = fmt.Sprintf("https://xboxapi.com/v2/%d/activity?continuationToken=%s", xuid, continuationToken.String())
 	}
 	rsp, err := c.Get(url)
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,6 @@ func (c *Client) Activity(xuid int, continuationToken *json.Number) (*Activity, 
 		}
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	var data *Activity
 	err = json.NewDecoder(rsp.Body).Decode(&data)
 	return data, err

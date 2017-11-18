@@ -34,16 +34,13 @@ func (c *Client) XboxOneGames(xuid int, continuationToken *json.Number) (*XboxOn
 		url = fmt.Sprintf("https://xboxapi.com/v2/%d/xbox360games?continuationToken=%s", xuid, continuationToken.String())
 	}
 	rsp, err := c.Get(url)
-	if err != nil {
-		return nil, err
-	}
+	defer safeHTTPResponseClose(rsp)
 	if err := rspError(rsp); err != nil {
 		if isHTTPError(err) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	var data *XboxOneGames
 	err = json.NewDecoder(rsp.Body).Decode(&data)
 	return data, err
@@ -79,6 +76,7 @@ func (c *Client) Xbox360Games(xuid int, continuationToken *json.Number) (*Xbox36
 		url = fmt.Sprintf("https://xboxapi.com/v2/%d/xbox360games?continuationToken=%s", xuid, continuationToken.String())
 	}
 	rsp, err := c.Get(url)
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +86,6 @@ func (c *Client) Xbox360Games(xuid int, continuationToken *json.Number) (*Xbox36
 		}
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	var data *Xbox360Games
 	err = json.NewDecoder(rsp.Body).Decode(&data)
 	return data, err

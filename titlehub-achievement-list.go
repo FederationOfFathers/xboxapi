@@ -60,10 +60,10 @@ type TilehubAchievementList struct {
 
 func (c *Client) TileHub(xuid string) (*TilehubAchievementList, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/%s/titlehub-achievement-list", xuid))
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	if err := rspError(rsp); err != nil {
 		if isHTTPError(err) {
 			return nil, nil

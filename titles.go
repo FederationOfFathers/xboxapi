@@ -138,10 +138,10 @@ func (t *Title) Devices() []string {
 
 func (c *Client) GameDetails(guid string) (*Title, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/game-details/%s", guid))
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	if err := rspError(rsp); err != nil {
 		if isHTTPError(err) {
 			return nil, nil
@@ -155,10 +155,10 @@ func (c *Client) GameDetails(guid string) (*Title, error) {
 
 func (c *Client) GameDetailsHex(hex string) (*Title, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/game-details-hex/%s", hex))
+	defer safeHTTPResponseClose(rsp)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
 	if err := rspError(rsp); err != nil {
 		if isHTTPError(err) {
 			return nil, nil
