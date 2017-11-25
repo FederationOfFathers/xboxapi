@@ -1,6 +1,8 @@
 package xboxapi
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -11,6 +13,10 @@ type APITime string
 func (a APITime) Time() time.Time {
 	if a == "0001-01-01T00:00:00" {
 		return time.Unix(1, 0)
+	}
+	if a[10] == ' ' {
+		// "2012-11-04 06:11:01" -> "2012-11-04T06:11:01.0000000Z"
+		a = APITime(fmt.Sprintf("%s.0000000Z", strings.Replace(string(a), " ", "T", 1)))
 	}
 	t, err := time.Parse(time.RFC3339Nano, string(a))
 	if err != nil {
