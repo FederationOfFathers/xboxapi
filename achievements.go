@@ -1,60 +1,69 @@
 package xboxapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"time"
 )
 
+var ErrUnknownAchievementType = fmt.Errorf("Unknown Achievement Type")
+
 type Achievement struct {
-	ID                int         `json:"id"`
-	ServiceConfigID   string      `json:"serviceConfigId"`
-	Name              string      `json:"name"`
-	ProgressState     string      `json:"progressState"`
-	IsSecret          bool        `json:"isSecret"`
-	Description       string      `json:"description"`
-	LockedDescription string      `json:"lockedDescription"`
-	ProductID         string      `json:"productId"`
-	AchievementType   string      `json:"achievementType"`
-	ParticipationType string      `json:"participationType"`
-	EstimatedTime     string      `json:"estimatedTime"`
-	IsRevoked         bool        `json:"isRevoked"`
-	TimeWindow        interface{} `json:"timeWindow"` // no idea what goes here when it's not null
-	Deeplink          interface{} `json:"deeplink"`   // no idea what goes here when it's not null
-	TitleAssociations []struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	} `json:"titleAssociations"`
-	Progression struct {
-		Requirements []struct {
-			ID                    string `json:"id"`
-			Current               int    `json:"current"`
-			Target                int    `json:"target"`
-			OperationType         string `json:"operationType"`
-			ValueType             string `json:"valueType"`
-			RuleParticipationType string `json:"ruleParticipationType"`
-		} `json:"requirements"`
-	} `json:"progression"`
-	MediaAssets []struct {
-		Name string `json:"name"`
-		Type string `json:"type"`
-		URL  string `json:"url"`
-	} `json:"mediaAssets"`
-	Platforms []string `json:"platforms"`
-	Rewards   []struct {
-		Name        interface{} `json:"name"`        // no idea what goes here when it's not null
-		Description interface{} `json:"description"` // no idea what goes here when it's not null
-		MediaAsset  interface{} `json:"mediaAsset"`  // no idea what goes here when it's not null
-		Value       int         `json:"value"`
-		Type        string      `json:"type"`
-		ValueType   string      `json:"valueType"`
-	} `json:"rewards"`
-	Rarity struct {
-		CurrentCategory   string  `json:"currentCategory"`
-		CurrentPercentage float64 `json:"currentPercentage"`
-	} `json:"achievements"`
+	ID                int       `json:"id"`
+	TitleID           int       `json:"title_id"`
+	Name              string    `json:"name"`
+	Description       string    `json:"description"`
+	LockedSescription string    `json:"locked_description"`
+	Unlocked          bool      `json:"unlocked"`
+	Secret            bool      `json:"secret"`
+	Image             string    `json:"image"`
+	TimeUnlocked      time.Time `json:"time_unlocked"`
 }
 
-type AchievementList []Achievement
+func (a *Achievement) Ingest(any interface{}) error {
+	if a == nil {
+		a = &Achievement{}
+	}
+	switch any := any.(type) {
+	case AchievementOne:
+		a.ID = any.ID
+		a.TitleID = any.TitleAssociations[0].ID
+		a.Name = any.Name
+		a.Description = any.Description
+		a.LockedSescription = any.LockedDescription
+		a.Secret = any.IsSecret
+		for _, i := range any.MediaAssets {
+			if i.Type == "Icon" {
+				a.Image = i.URL
+				break
+			}
+		}
+		if strings.ToLower(any.ProgressState) == "achieved" {
+			a.Unlocked = true
+			a.TimeUnlocked = any.Progression.TimeUnlocked.Time()
+		}
+	case Achievement360:
+		a.ID = any.ID
+		a.TitleID = any.TitleID
+		a.Name = any.Name
+		a.Description = any.Description
+		a.LockedSescription = any.LockedDescription
+		a.Secret = any.Secret
+		a.Image = any.Image
+		if any.Unlocked {
+			a.Unlocked = any.Unlocked
+			a.TimeUnlocked = any.TimeUnlocked.Time()
+		}
+	default:
+		return ErrUnknownAchievementType
+	}
+	return nil
+}
+
+type AchievementList []*Achievement
 
 func (c *Client) Achievements(xuid string, titleID int) (AchievementList, error) {
 	rsp, err := c.Get(fmt.Sprintf("https://xboxapi.com/v2/%s/achievements/%d", xuid, titleID))
@@ -68,7 +77,35 @@ func (c *Client) Achievements(xuid string, titleID int) (AchievementList, error)
 		}
 		return nil, err
 	}
-	var rval AchievementList
-	err = json.NewDecoder(rsp.Body).Decode(&rval)
+	buf, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var rval = AchievementList{}
+	if bytes.Contains(buf, []byte(`"serviceConfigId"`)) {
+		var list = []AchievementOne{}
+		if err := json.Unmarshal(buf, &list); err != nil {
+			return nil, err
+		}
+		for _, cheevo := range list {
+			var entry = &Achievement{}
+			if err := entry.Ingest(cheevo); err != nil {
+				return nil, err
+			}
+			rval = append(rval, entry)
+		}
+	} else {
+		var list = []Achievement360{}
+		if err := json.Unmarshal(buf, &list); err != nil {
+			return nil, err
+		}
+		for _, cheevo := range list {
+			var entry = &Achievement{}
+			if err := entry.Ingest(cheevo); err != nil {
+				return nil, err
+			}
+			rval = append(rval, entry)
+		}
+	}
 	return rval, err
 }
