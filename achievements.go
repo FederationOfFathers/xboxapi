@@ -31,7 +31,7 @@ func (a *Achievement) Ingest(any interface{}) error {
 	case AchievementOne:
 		a.ID = any.ID
 		a.TitleID = any.TitleAssociations[0].ID
-		a.Name = any.Name
+		a.Name = any.Name.String()
 		a.Description = any.Description
 		a.LockedSescription = any.LockedDescription
 		a.Secret = any.IsSecret
@@ -48,7 +48,7 @@ func (a *Achievement) Ingest(any interface{}) error {
 	case Achievement360:
 		a.ID = any.ID
 		a.TitleID = any.TitleID
-		a.Name = any.Name
+		a.Name = any.Name.String()
 		a.Description = any.Description
 		a.LockedSescription = any.LockedDescription
 		a.Secret = any.Secret

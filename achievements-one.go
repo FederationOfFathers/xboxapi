@@ -8,7 +8,7 @@ import (
 type AchievementOne struct {
 	ID                int         `json:"id"`
 	ServiceConfigID   string      `json:"serviceConfigId"`
-	Name              string      `json:"name"`
+	Name              json.Number `json:"name"`
 	ProgressState     string      `json:"progressState"`
 	IsSecret          bool        `json:"isSecret"`
 	Description       string      `json:"description"`
@@ -26,12 +26,12 @@ type AchievementOne struct {
 	} `json:"titleAssociations"`
 	Progression struct {
 		Requirements []struct {
-			ID                    string `json:"id"`
-			Current               int    `json:"current"`
-			Target                int    `json:"target"`
-			OperationType         string `json:"operationType"`
-			ValueType             string `json:"valueType"`
-			RuleParticipationType string `json:"ruleParticipationType"`
+			ID                    string      `json:"id"`
+			Current               float64     `json:"current"`
+			Target                interface{} `json:"target"`
+			OperationType         string      `json:"operationType"`
+			ValueType             string      `json:"valueType"`
+			RuleParticipationType string      `json:"ruleParticipationType"`
 		} `json:"requirements"`
 		TimeUnlocked APITime `json:"timeUnlocked"`
 	} `json:"progression"`
@@ -45,7 +45,7 @@ type AchievementOne struct {
 		Name        interface{} `json:"name"`        // no idea what goes here when it's not null
 		Description interface{} `json:"description"` // no idea what goes here when it's not null
 		MediaAsset  interface{} `json:"mediaAsset"`  // no idea what goes here when it's not null
-		Value       int         `json:"value"`
+		Value       interface{} `json:"value"`
 		Type        string      `json:"type"`
 		ValueType   string      `json:"valueType"`
 	} `json:"rewards"`
